@@ -1,0 +1,12 @@
+flask
+flask_restful
+tensorflow
+librosa
+numpy
+pandas
+scikit-learn==1.2.2
+soundfile
+audioread
+ffmpeg
+Flask-CORS
+joblib
