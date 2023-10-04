@@ -138,6 +138,41 @@ def predict_age():
         return jsonify({"error": "An error occurred during processing."}), 500
 
 
+@app.route("/detect-anomaly", methods=["POST"])
+def detect_anomaly():
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        audio_file = request.files["file"]
+        y, sr = load_with_audioread(audio_file)
+        magnitude, _ = get_magnitude_spectrogram(y, sr)
+        test_mfcc = extract_mfcc_from_spectrogram(magnitude)
+
+        # Predict anomalies using the loaded anomaly model
+        anomaly_predictions = anomaly_model.predict(np.array([test_mfcc]))
+
+        anomalies = sum([1 for pred in anomaly_predictions if pred == -1])
+        percentage_anomalies = (anomalies / len(anomaly_predictions)) * 100
+
+        anomaly_classification = [
+            "potential autism" if pred == -1 else "typical"
+            for pred in anomaly_predictions
+        ]
+
+        response_data = {
+            "number_of_detected_anomalies": anomalies,
+            "percentage_of_detected_anomalies": percentage_anomalies,
+            "anomaly_classification": anomaly_classification,
+        }
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        print("Error during anomaly detection:", str(e))
+        return jsonify({"error": "An error occurred during anomaly detection."}), 500
+
+
 if __name__ == "__main__":
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB limit
     app.run(debug=True)
