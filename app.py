@@ -23,6 +23,8 @@ voice_separation_model = tf.keras.models.load_model(
 
 age_model = joblib.load("./models/age_model.pkl")
 
+anomaly_model = joblib.load("./models/anomaly_detector_model.pkl")
+
 
 def get_magnitude_spectrogram(y, sr, n_fft=1024, hop_length=512):
     D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
@@ -64,6 +66,7 @@ def extract_mfcc_from_spectrogram(spec, sr=22050, hop_length=512):
 
 @app.route("/process-voice", methods=["POST"])
 def process_voice():
+    print("Processing voice...")
     # Ensure the request has a file attached
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
